@@ -1,5 +1,31 @@
 let STORAGE_KEY = 'redtimer-web-settings';
 
+function normalizeBaseUrl(url) {
+  if (!url) return '';
+  return url.trim().replace(/\/$/, '');
+}
+
+function loadSettings() {
+  const defaults = {
+    baseUrl: normalizeBaseUrl(import.meta.env.VITE_REDMINE_URL || ''),
+    apiKey: String(import.meta.env.VITE_REDMINE_API_KEY || '').trim(),
+    maxRecent: 10,
+  };
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaults;
+    const saved = JSON.parse(raw);
+    const maxR = parseInt(saved.maxRecent, 10);
+    return {
+      baseUrl: normalizeBaseUrl(saved.baseUrl ?? defaults.baseUrl),
+      apiKey: String(saved.apiKey ?? defaults.apiKey).trim(),
+      maxRecent: Number.isFinite(maxR) && maxR > 0 ? maxR : defaults.maxRecent,
+    };
+  } catch {
+    return defaults;
+  }
+}
+
 const els = {
   quickPick: document.getElementById('quick-pick'),
   issueId: document.getElementById('issue-id'),
@@ -41,26 +67,8 @@ let currentIssue = null;
 let activities = [];
 let issueStatuses = [];
 
-function loadSettings() {  
-  const baseUrl = import.meta.env.VITE_REDMINE_URL;
-  const apiKey = import.meta.env.VITE_REDMINE_API_KEY;
-  const maxRecent = 10;
-
-  STORAGE_KEY = `redtimer-web-settings-${baseUrl}`;
-  return {
-    baseUrl: import.meta.env.VITE_REDMINE_URL,
-    apiKey: import.meta.env.VITE_REDMINE_API_KEY,
-    maxRecent: 10,
-  };    
-}
-
 function saveSettings() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-}
-
-function normalizeBaseUrl(url) {
-  if (!url) return '';
-  return url.trim().replace(/\/$/, '');
 }
 
 function setStatus(msg, type = '') {
@@ -69,8 +77,8 @@ function setStatus(msg, type = '') {
 }
 
 async function redmineFetch(path, options = {}) {
-  const base = import.meta.env.VITE_REDMINE_URL;
-  const key = import.meta.env.VITE_REDMINE_API_KEY;
+  const base = normalizeBaseUrl(settings.baseUrl);
+  const key = settings.apiKey.trim();
   if (!base || !key) {
     throw new Error('Configure URL e chave de API nas configurações.');
   }
