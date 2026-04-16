@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RedTimer Web</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <header class="toolbar" role="toolbar">
+        <button type="button" class="icon-btn" id="btn-create-issue" title="Criar issue (em breve)" disabled aria-disabled="true">+</button>
+        <span class="toolbar-spacer"></span>
+        <button type="button" class="icon-btn" id="btn-connection" title="Status da conexão">◉</button>
+        <button type="button" class="icon-btn" id="btn-reload" title="Recarregar issue">↻</button>
+        <button type="button" class="icon-btn" id="btn-settings" title="Configurações">⚙</button>
+      </header>
+
+      <main class="main">
+        <div class="row row-issue-picker">
+          <input
+            type="text"
+            id="quick-pick"
+            class="input quick-pick"
+            placeholder="ID da issue ou Enter para carregar"
+            autocomplete="off"
+            list="recent-issues"
+          />
+          <datalist id="recent-issues"></datalist>
+          <button type="button" class="icon-btn" id="btn-select-issue" title="Selecionar issue na lista">≡</button>
+        </div>
+
+        <section class="group" aria-labelledby="issue-data-title">
+          <h2 class="group-title" id="issue-data-title">Dados da issue</h2>
+          <input type="text" id="issue-id" class="input" readonly placeholder="ID" />
+          <input type="text" id="issue-subject" class="input" readonly placeholder="Assunto" />
+          <textarea id="issue-description" class="textarea" readonly placeholder="Descrição"></textarea>
+        </section>
+
+        <div class="row row-timer">
+          <button type="button" class="icon-btn icon-btn--primary" id="btn-start-stop" title="Iniciar / parar">▶</button>
+          <input type="text" id="counter" class="input counter" readonly value="00:00:00" />
+        </div>
+
+        <label class="field-label" for="activity">Atividade</label>
+        <select id="activity" class="select"></select>
+
+        <label class="field-label" for="issue-status">Status da issue</label>
+        <select id="issue-status" class="select"></select>
+
+        <label class="field-label" for="entry-comment">Comentário (time entry)</label>
+        <input type="text" id="entry-comment" class="input" placeholder="Opcional" />
+      </main>
+
+      <p class="status-line" id="status-line" role="status"></p>
+    </div>
+
+    <!-- Modal configurações -->
+    <div class="modal-backdrop" id="settings-backdrop" hidden></div>
+    <dialog class="modal" id="settings-dialog" aria-labelledby="settings-title">
+      <h2 id="settings-title">Configurações</h2>
+      <form id="settings-form" method="dialog">
+        <label for="redmine-url">URL do Redmine</label>
+        <input type="url" id="redmine-url" class="input" placeholder="https://redmine.exemplo.com" required />
+
+        <label for="api-key">Chave de API</label>
+        <input type="password" id="api-key" class="input" placeholder="Chave em Minha conta" autocomplete="current-password" />
+
+        <label for="max-recent">Máx. issues recentes</label>
+        <input type="number" id="max-recent" class="input" value="10" min="-1" step="1" />
+
+        <div class="modal-actions">
+          <button type="submit" class="btn btn--primary">Salvar</button>
+          <button type="button" class="btn" id="settings-cancel">Cancelar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Modal lista de issues -->
+    <div class="modal-backdrop" id="issues-backdrop" hidden></div>
+    <dialog class="modal modal--wide" id="issues-dialog" aria-labelledby="issues-title">
+      <h2 id="issues-title">Issues recentes</h2>
+      <ul class="issue-list" id="issue-list"></ul>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="issues-close">Fechar</button>
+      </div>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
