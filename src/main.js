@@ -76,18 +76,38 @@ function setStatus(msg, type = '') {
   els.statusLine.className = 'status-line' + (type ? ` status-line--${type}` : '');
 }
 
+/** Fetch via /api/redmine (mesma origem) para evitar CORS no Redmine. */
+function useServerProxy() {
+  if (import.meta.env.VITE_USE_SERVER_PROXY === 'false') return false;
+  if (import.meta.env.VITE_USE_SERVER_PROXY === 'true') return true;
+  // Deploy típico na Vercel (*.vercel.app) já inclui o proxy em /api/redmine
+  if (typeof location !== 'undefined' && /\.vercel\.app$/i.test(location.hostname)) return true;
+  return false;
+}
+
 async function redmineFetch(path, options = {}) {
   const base = normalizeBaseUrl(settings.baseUrl);
   const key = settings.apiKey.trim();
   if (!base || !key) {
     throw new Error('Configure URL e chave de API nas configurações.');
   }
-  const url = `${base}${path.startsWith('/') ? path : `/${path}`}`;
+  const pathPart = path.startsWith('/') ? path : `/${path}`;
+
   const headers = {
-    'X-Redmine-API-Key': key,
     Accept: 'application/json',
     ...(options.headers || {}),
   };
+
+  let url;
+  if (useServerProxy()) {
+    url = `/api/redmine?${new URLSearchParams({ path: pathPart }).toString()}`;
+    headers['X-Redmine-Base-Url'] = base;
+    headers['X-Redmine-API-Key'] = key;
+  } else {
+    url = `${base}${pathPart}`;
+    headers['X-Redmine-API-Key'] = key;
+  }
+
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const text = await res.text();
